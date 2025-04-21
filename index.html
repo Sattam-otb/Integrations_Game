@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة تكامل الدوال المثلثية</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>لعبة تكامل الدوال المثلثية</h1>
+        <p>السؤال رقم: <span id="question-number">{{ question_number }}</span> / {{ total_questions }}</p>
+        <div class="question" id="question">{{ question }}</div>
+        <form id="answer-form">
+            <div class="options">
+                {% for option in options %}
+                    <label>
+                        <input type="radio" name="answer" value="{{ option }}">
+                        <span>{{ option }} + C</span>
+                    </label>
+                {% endfor %}
+            </div>
+            <button type="button" onclick="checkAnswer()">تحقق من الإجابة</button>
+        </form>
+        <div class="result" id="result"></div>
+        <div class="score">النقاط: <span id="current-score">{{ score }}</span></div>
+    </div>
+
+    <script>
+        async function checkAnswer() {
+            const formData = new FormData(document.getElementById('answer-form'));
+            const response = await fetch('/check_answer', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            const resultDiv = document.getElementById('result');
+            const scoreSpan = document.getElementById('current-score');
+            const answerForm = document.getElementById('answer-form');
+            const options = answerForm.querySelectorAll('input[type="radio"]');
+
+            if (data.result === 'correct') {
+                resultDiv.textContent = 'إجابة صحيحة! 👍';
+            } else {
+                resultDiv.textContent = `إجابة خاطئة. الإجابة الصحيحة هي: ${data.correct_answer} + C`;
+            }
+            scoreSpan.textContent = data.score;
+
+            // تعطيل الخيارات بعد الإجابة
+            options.forEach(option => {
+                option.disabled = true;
+            });
+
+            // الانتقال للسؤال التالي بعد فترة قصيرة
+            setTimeout(() => {
+                window.location.href = '/question';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
